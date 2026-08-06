@@ -1,16 +1,16 @@
 import express from 'express';
 import { 
-  createTodo, 
-  deleteTodo, 
-  fetchAllCats, 
-  fetchTodo, 
-  updateTodo } from '../controller/catController';
+  createCat,
+  deleteCat,
+  fetchAllCats,
+  fetchCat,
+  updateCat } from '../controller/catController';
 const router = express.Router()
 
-router.get('/', fetchAllCats)
-router.get('/:id', fetchTodo)
-router.post('/', createTodo)
-router.patch('/:id', updateTodo)
-router.delete('/:id', deleteTodo)
+router.get('/categories', fetchAllCats)
+router.post('/categories', createCat)
+router.patch('/categories/:id', updateCat)
+router.delete('/categories/:id', deleteCat)
+router.get('/categories/:id/products', fetchCat)
 
 export default router;

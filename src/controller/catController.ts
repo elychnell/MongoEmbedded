@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../config/db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
+
 import { ITodoDBResponse } from "../models/ITodoDBResponse";
 
 
@@ -33,7 +34,7 @@ export const fetchAllCats = async (req: Request, res: Response) => {
   }
 }
 
-export const fetchTodo = async (req: Request, res: Response) => {
+export const fetchCat = async (req: Request, res: Response) => {
   console.log(req.params)
   const id = req.params.id
 
@@ -85,7 +86,7 @@ const formatedTodo2 = (rows: ITodoDBResponse[]) => {
     }
 }
 
-export const createTodo = async (req: Request, res: Response) => {
+export const createCat = async (req: Request, res: Response) => {
   const content = req.body.content;
   if (content === undefined) {
     res.status(400).json({error: 'Content is required'}) 
@@ -94,13 +95,13 @@ export const createTodo = async (req: Request, res: Response) => {
 
   try {
     const sql = `
-      INSERT INTO todos (content)
+      INSERT INTO categories (content)
       VALUES (?)
     `;
 
     const [result] = await db.query<ResultSetHeader>(sql,[content]);
     console.log(result)
-    res.status(201).json({message: 'Todo created', newTodo: {id: result.insertId, content: content}})
+    res.status(201).json({message: 'Todo created', newCategory: {id: result.insertId, content: content}})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -108,7 +109,7 @@ export const createTodo = async (req: Request, res: Response) => {
 }
 
 
-export const updateTodo = async (req: Request, res: Response) => {
+export const updateCat = async (req: Request, res: Response) => {
   const {content, done} = req.body // Destructur JS Object
   if (content === undefined || done === undefined) {
     res.status(400).json({error: 'Content and Done are required'})
@@ -119,7 +120,7 @@ export const updateTodo = async (req: Request, res: Response) => {
   try {
     const id = req.params.id
     const [result] = await db.query<ResultSetHeader>(`
-        UPDATE todos 
+        UPDATE categories 
         SET content = ?, done = ?
         WHERE id = ?
       `,
@@ -138,12 +139,12 @@ export const updateTodo = async (req: Request, res: Response) => {
   }
 }
 
-export const deleteTodo = async (req: Request, res: Response) => {
+export const deleteCat = async (req: Request, res: Response) => {
   const id = req.params.id
 
   try {
     const sql = `
-      DELETE FROM todos 
+      DELETE FROM categories 
       WHERE id = ?
     `;
 
