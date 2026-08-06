@@ -1,7 +1,7 @@
 import Express, { Request, Response } from 'express';
 import 'dotenv/config';
 import cors from 'cors';
-//import carRoutes from './routes/carRoutes.js';
+import catRoutes from './routes/catRoutes.js';
 //import { connectToDatabase } from './config/db.js';
 
 const app = Express();
@@ -9,7 +9,7 @@ const PORT = 3000;
 
 app.use(Express.json());
 app.use(cors());
-//app.use('/cars', carRoutes);
+app.use('/', catRoutes);
 
 app.get('/', (_: Request, res: Response) => {
 	try {
