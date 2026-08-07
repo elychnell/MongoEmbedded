@@ -50,7 +50,7 @@ export const fetchCat = async (req: Request, res: Response) => {
   }
 }
 
-const formatedCategory2 = (rows: ICatDBResponse[]) => {
+const formatedCategory = (rows: ICatDBResponse[]) => {
   if (rows.length !== 0 && rows[0]) { 
   return {
       id:         rows[0].category_id,

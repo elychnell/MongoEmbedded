@@ -1,9 +1,7 @@
 import express, { Request, Response } from 'express';
-import 'dotenv/config';
 import cors from 'cors';
 import catRoutes from './routes/catRoutes.js';
 import prodRoutes from './routes/prodRoutes.js';
-//import { connectToDatabase } from './config/db.js';
 
 const app = express();
 const PORT = 3000;
@@ -16,7 +14,7 @@ app.use('/products', prodRoutes);
 app.get('/', (_: Request, res: Response) => {
 	try {
 		res.send(`<style>pre { display: inline;position: relative; right: 50px; } </style>
-			<h2>API Routes</h2>
+		<h2>API Routes</h2>
 		<h4>Categories:</h4>
 		<pre>
 		• Hämta alla kategorier med GET: <a href="http://localhost:3000/categories">http://localhost:3000/categories</a>
@@ -28,8 +26,8 @@ app.get('/', (_: Request, res: Response) => {
 		<h4>Products:</h4>
 		<pre>
 		• Hämta alla produkter med GET: <a href="http://localhost:3000/products">http://localhost:3000/products</a>
-		* Skall kunna söka produkter efter produkt titel
-		* Skall kunna sortera produktlistan efter pris, både (asc/desc)<br/>
+		* Sök produkter efter titel med parametern 'search': <a href="http://localhost:3000/products?search=title">http://localhost:3000/products?search=title</a>
+		* Sortera produktlistan efter pris med parametern 'sort': <a href="http://localhost:3000/products?sort=asc">http://localhost:3000/products?sort=asc</a> eller desc<br/>
 		• Hämta enskild produkt med GET: <a href="http://localhost:3000/products/:id">http://localhost:3000/products/:id</a>
 		• Skapa ny produkt med POST: <a href="http://localhost:3000/products">http://localhost:3000/products</a>
 		• Uppdatera befintlig produkt med PATCH: <a href="http://localhost:3000/products/:id">http://localhost:3000/products/:id</a>
@@ -46,12 +44,3 @@ app.get('/', (_: Request, res: Response) => {
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
 });
-
-// Test DB connection
-//connectToDatabase();
-
-// ... some query
-
-// Close the pool
-
-//await db.end(); // NEEDED?

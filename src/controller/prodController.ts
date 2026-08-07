@@ -11,15 +11,15 @@ export const fetchAllProducts = async (req: Request, res: Response) => {
     let params: string[] = [];
 
     if(search) {
-      sql += ` WHERE content LIKE ?`
+      sql += ` WHERE title LIKE ?`
       params = [`%${search}%`]
     }
 
     // Solution 1
     if(sort && sort === 'asc') {
-      sql += ` ORDER BY content ASC`
+      sql += ` ORDER BY price ASC`
     } else if (sort && sort === 'desc') {
-      sql += ` ORDER BY content DESC`
+      sql += ` ORDER BY price DESC`
     }
 
     const [results] = await db.query<RowDataPacket[]>(sql,params);
@@ -53,24 +53,37 @@ export const fetchProduct = async (req: Request, res: Response) => {
 }
 
 export const createProduct = async (req: Request, res: Response) => {
-  const content = req.body.content;
-  const product_id = req.body.product_id;
-  if (content === undefined) {
-    res.status(400).json({error: 'Content is required'}) 
+  const {title, description, stock, price} = req.body
+
+  if (title === undefined) {
+    res.status(400).json({error: 'Title is required'}) 
+    return; 
+  }
+
+  if (description === undefined) {
+    res.status(400).json({error: 'Description is required'}) 
+    return; 
+  }
+
+  if (stock === undefined) {
+    res.status(400).json({error: 'Stock is required'}) 
+    return; 
+  }
+
+  if (price === undefined) {
+    res.status(400).json({error: 'Price is required'}) 
     return; 
   }
 
   try {
     const sql = `
-      INSERT INTO products (product_id, content)
-      VALUES (?, ?)
+      INSERT INTO products (title, description, stock, price)
+      VALUES (?, ?, ?, ?)
     `;
 
     const [result] = await db.query<ResultSetHeader>(
-        sql,
-        [product_id, content]
-    );
-    res.status(201).json({message: 'Product created', newProduct: {id: result.insertId, content: content}})
+        sql,[title, description, stock, price] );
+    res.status(201).json({message: 'Product created', newProduct: {id: result.insertId, title: title, description: description, stock: stock, price: price}})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -79,20 +92,35 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
  
-  const {content} = req.body // Destructur JS Object
-  if (content === undefined) {
-    res.status(400).json({error: 'Content is required'})
-    return
+  const {title, description, stock, price} = req.body
+
+ if (title === undefined) {
+    res.status(400).json({error: 'Title is required'}) 
+    return; 
   }
 
+  if (description === undefined) {
+    res.status(400).json({error: 'Description is required'}) 
+    return; 
+  }
+
+  if (stock === undefined) {
+    res.status(400).json({error: 'Stock is required'}) 
+    return; 
+  }
+
+  if (price === undefined) {
+    res.status(400).json({error: 'Price is required'}) 
+    return; 
+  }
 
   try {
     const id = req.params.id
     const [result] = await db.query<ResultSetHeader>(`
         UPDATE products 
-        SET content = ?
+        SET title = ?, description = ?, stock = ?, price = ?
         WHERE id = ?
-      `, [content, id]
+      `, [title, description, stock, price, id]
     );
     
     if (result.affectedRows === 0) {
