@@ -2,6 +2,37 @@ import { Request, Response } from "express";
 import { db } from "../config/db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 
+export const fetchAllProducts = async (req: Request, res: Response) => {
+  const search = req.query.search
+  const sort = req.query.sort
+
+  try {
+    let sql = 'SELECT * FROM products'
+    let params: string[] = [];
+
+    if(search) {
+      sql += ` WHERE content LIKE ?`
+      params = [`%${search}%`]
+    }
+
+    // Solution 1
+    if(sort && sort === 'asc') {
+      sql += ` ORDER BY content ASC`
+    } else if (sort && sort === 'desc') {
+      sql += ` ORDER BY content DESC`
+    }
+
+    const [results] = await db.query<RowDataPacket[]>(sql,params);
+    res.json(results)
+  } catch(error: unknown) {
+    const message = error  instanceof Error ? error.message : 'Unknown error'
+    res.status(500).json({error: message})
+  }
+}
+
+
+
+
 export const fetchProduct = async (req: Request, res: Response) => {
   console.log(req.params)
   const id = req.params.id
