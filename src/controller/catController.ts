@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { db } from "../config/db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
-
-import { ICatDBResponse, ITodoDBResponse } from "../models/ITodoDBResponse";
-
+import { ICatDBResponse } from "../models/ICatDBResponse";
 
 export const fetchAllCats = async (req: Request, res: Response) => {
 
@@ -52,7 +50,7 @@ export const fetchCat = async (req: Request, res: Response) => {
   }
 }
 
-const formatedCategory2 = (rows: ITodoDBResponse[]) => {
+const formatedCategory2 = (rows: ICatDBResponse[]) => {
   if (rows.length !== 0 && rows[0]) { 
   return {
       id:         rows[0].category_id,

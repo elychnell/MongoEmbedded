@@ -2,14 +2,15 @@ import express from 'express';
 import { 
   createProduct, 
   deleteProduct, 
+  fetchAllProducts, 
   fetchProduct, 
   updateProduct } from '../controller/prodController.js';  
 const router = express.Router()
 
-// router.get('/', fetchAllSubtasks)
-router.get('/:id', fetchProduct)
-router.post('/:variable', createProduct)
-router.patch('/:id', updateProduct)
-router.delete('/:id', deleteProduct)
+router.get('/products', fetchAllProducts)
+router.get('/products/:id', fetchProduct)
+router.post('/products', createProduct)
+router.patch('/products/:id', updateProduct)
+router.delete('/products/:id', deleteProduct)
 
 export default router;

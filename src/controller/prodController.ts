@@ -30,9 +30,6 @@ export const fetchAllProducts = async (req: Request, res: Response) => {
   }
 }
 
-
-
-
 export const fetchProduct = async (req: Request, res: Response) => {
   console.log(req.params)
   const id = req.params.id
