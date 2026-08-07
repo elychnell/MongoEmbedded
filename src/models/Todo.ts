@@ -1,3 +1,4 @@
+//Probably not needed, but I will keep it for now.
 export class Todo {
   id: number = 0;
   content: string = "";

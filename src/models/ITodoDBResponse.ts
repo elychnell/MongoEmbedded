@@ -1,13 +1,9 @@
 import { RowDataPacket } from "mysql2";
 
-export interface ITodoDBResponse extends RowDataPacket {
-  todo_id: number,
-  todo_content: string,
-  todo_done: boolean,
-  todo_created_at: string,
-  subtask_id: number,
-  subtask_todo_id: number,
-  subtask_content: string,
-  subtask_done: boolean,
-  subtask_created_at: string
+export interface ICatDBResponse extends RowDataPacket {
+  product_id: number,
+  product_content: string,
+  product_created_at: string,
+  category_id: number,
+  category_name: string
 }

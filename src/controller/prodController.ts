@@ -26,7 +26,7 @@ export const fetchProduct = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   const content = req.body.content;
-  const todo_id = req.body.todo_id;
+  const product_id = req.body.product_id;
   if (content === undefined) {
     res.status(400).json({error: 'Content is required'}) 
     return; 
@@ -34,13 +34,13 @@ export const createProduct = async (req: Request, res: Response) => {
 
   try {
     const sql = `
-      INSERT INTO products (todo_id, content)
+      INSERT INTO products (product_id, content)
       VALUES (?, ?)
     `;
 
     const [result] = await db.query<ResultSetHeader>(
         sql,
-        [todo_id, content]
+        [product_id, content]
     );
     res.status(201).json({message: 'Product created', newProduct: {id: result.insertId, content: content}})
   } catch(error: unknown) {
@@ -50,11 +50,10 @@ export const createProduct = async (req: Request, res: Response) => {
 }
 
 export const updateProduct = async (req: Request, res: Response) => {
-  // const content = req.body.content;
-  // const done = req.body.done;
-  const {content, done} = req.body // Destructur JS Object
-  if (content === undefined || done === undefined) {
-    res.status(400).json({error: 'Content and Done are required'})
+ 
+  const {content} = req.body // Destructur JS Object
+  if (content === undefined) {
+    res.status(400).json({error: 'Content is required'})
     return
   }
 
@@ -63,18 +62,17 @@ export const updateProduct = async (req: Request, res: Response) => {
     const id = req.params.id
     const [result] = await db.query<ResultSetHeader>(`
         UPDATE products 
-        SET content = ?, done = ?
+        SET content = ?
         WHERE id = ?
-      `,
-      [content, done, id]
+      `, [content, id]
     );
     
     if (result.affectedRows === 0) {
-      res.status(404).json({message: "Product not found"})
+      res.status(404).json({message: `Product ${id} not found`})
       return
     }
   
-    res.json({message: 'Product updated'})
+    res.json({message: `Product ${id} updated`})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -93,10 +91,10 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
     const [result] = await db.query<ResultSetHeader>(sql,[id]);
     if (result.affectedRows === 0) {
-      res.status(404).json({message: "Product not found"})
+      res.status(404).json({message: `Product ${id} not found`})
       return
     }
-    res.json({message: 'Product deleted'})
+    res.json({message: `Product ${id} deleted`})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})

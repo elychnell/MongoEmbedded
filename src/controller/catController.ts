@@ -2,31 +2,14 @@ import { Request, Response } from "express";
 import { db } from "../config/db";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 
-import { ITodoDBResponse } from "../models/ITodoDBResponse";
+import { ICatDBResponse, ITodoDBResponse } from "../models/ITodoDBResponse";
 
 
 export const fetchAllCats = async (req: Request, res: Response) => {
-  const search = req.query.search
-  const sort = req.query.sort
 
-  
   try {
-    let sql = 'SELECT * FROM todos'
-    let params: string[] = [];
-
-    if(search) {
-      sql += ` WHERE content LIKE ?`
-      params = [`%${search}%`]
-    }
-
-    // Solution 1
-    if(sort && sort === 'asc') {
-      sql += ` ORDER BY content ASC`
-    } else if (sort && sort === 'desc') {
-      sql += ` ORDER BY content DESC`
-    }
-
-    const [results] = await db.query<RowDataPacket[]>(sql,params);
+    let sql = 'SELECT * FROM categories'
+    const [results] = await db.query<RowDataPacket[]>(sql);
     res.json(results)
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
@@ -39,20 +22,19 @@ export const fetchCat = async (req: Request, res: Response) => {
   const id = req.params.id
 
   try {
-    const [rows] = await db.query<ITodoDBResponse[]>(`
+    const [rows] = await db.query<ICatDBResponse[]>(`
         SELECT 
-          todos.id AS todo_id, 
-          todos.content AS todo_content,
-          todos.done AS todo_done,
-          todos.created_at AS todo_created_at,
-          subtasks.id AS subtask_id, 
-          subtasks.todo_id AS subtask_todo_id,
-          subtasks.content AS subtask_content,
-          subtasks.done AS subtask_done,
-          subtasks.created_at AS subtask_created_at
-        from todos
-        LEFT JOIN subtasks ON todos.id = subtasks.todo_id
-        WHERE todos.id = ?
+          categories.id AS category_id, 
+          categories.content AS category_content,
+          categories.created_at AS category_created_at,
+          products.id AS product_id, 
+          products.category_id AS product_category_id,
+          products.content AS product_content,
+          products.created_at AS product_created_at
+        from categories
+        LEFT JOIN products ON categories.id = products.category_id
+        LEFT JOIN categories AS categories ON categories.id = categories.id
+        WHERE categories.id = ?
       `,
       [id]
     );
@@ -60,48 +42,49 @@ export const fetchCat = async (req: Request, res: Response) => {
     console.log(rows)
     const todo = rows[0]
     if (!todo) {
-      res.status(404).json({message: "Todo not found"})
+      res.status(404).json({message: "Category not found"})
     }
   
-    res.json(formatedTodo1(rows))
+    res.json(formatedCategory(rows))
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
   }
 }
 
-const formatedTodo2 = (rows: ITodoDBResponse[]) => {
+const formatedCategory2 = (rows: ITodoDBResponse[]) => {
+  if (rows.length !== 0 && rows[0]) { 
   return {
-      id:         rows[0].todo_id,
-      content:    rows[0].todo_content,
-      done:       rows[0].todo_done,
-      created_at: rows[0].todo_created_at,
-      subtasks:   rows.map((row) => ({
-          id:        row.subtask_id,
-          todo_id:   row.subtask_todo_id,
-          content:   row.subtask_content,
-          done:      row.subtask_done,
-          created_at:row.subtask_created_at
+      id:         rows[0].category_id,
+      content:    rows[0].category_content,
+      done:       rows[0].category_done,
+      created_at: rows[0].category_created_at,
+      products:   rows.map((row) => ({
+          id:row.product_id,
+          category_id:row.product_category_id,
+          content:row.product_content,
+          created_at:row.product_created_at
       }))
     }
+  }
 }
 
 export const createCat = async (req: Request, res: Response) => {
-  const content = req.body.content;
-  if (content === undefined) {
-    res.status(400).json({error: 'Content is required'}) 
+  const name = req.body.name;
+  if (name === undefined) {
+    res.status(400).json({error: 'Name is required'}) 
     return; 
   }
 
   try {
     const sql = `
-      INSERT INTO categories (content)
+      INSERT INTO categories (name)
       VALUES (?)
     `;
 
-    const [result] = await db.query<ResultSetHeader>(sql,[content]);
+    const [result] = await db.query<ResultSetHeader>(sql,[name]);
     console.log(result)
-    res.status(201).json({message: 'Todo created', newCategory: {id: result.insertId, content: content}})
+    res.status(201).json({message: 'category created', newCategory: {id: result.insertId, name: name}})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -110,9 +93,9 @@ export const createCat = async (req: Request, res: Response) => {
 
 
 export const updateCat = async (req: Request, res: Response) => {
-  const {content, done} = req.body // Destructur JS Object
-  if (content === undefined || done === undefined) {
-    res.status(400).json({error: 'Content and Done are required'})
+  const {name} = req.body // Destructur JS Object
+  if (name === undefined) {
+    res.status(400).json({error: 'Name is required'})
     return
   }
 
@@ -121,18 +104,18 @@ export const updateCat = async (req: Request, res: Response) => {
     const id = req.params.id
     const [result] = await db.query<ResultSetHeader>(`
         UPDATE categories 
-        SET content = ?, done = ?
+        SET name = ?
         WHERE id = ?
       `,
-      [content, done, id]
+      [name, id]
     );
     
     if (result.affectedRows === 0) {
-      res.status(404).json({message: "Todo not found"})
+      res.status(404).json({message: "Category not found"})
       return
     }
   
-    res.json({message: 'Todo updated'})
+    res.json({message: `Category ${id} updated`})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -150,10 +133,10 @@ export const deleteCat = async (req: Request, res: Response) => {
 
     const [result] = await db.query<ResultSetHeader>(sql,[id]);
     if (result.affectedRows === 0) {
-      res.status(404).json({message: "Todo not found"})
+      res.status(404).json({message: `Category ${id} not found`})
       return
     }
-    res.json({message: 'Todo deleted'})
+    res.json({message: `Category ${id} deleted`})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
