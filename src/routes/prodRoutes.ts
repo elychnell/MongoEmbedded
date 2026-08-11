@@ -4,13 +4,16 @@ import {
   deleteProduct, 
   fetchAllProducts, 
   fetchProduct, 
-  updateProduct } from '../controller/prodController.js';  
+  updateProduct,
+  addProductToCategory
+   } from '../controller/prodController.js';  
 const router = express.Router()
 
-router.get('/products', fetchAllProducts)
-router.get('/products/:id', fetchProduct)
-router.post('/products', createProduct)
-router.patch('/products/:id', updateProduct)
-router.delete('/products/:id', deleteProduct)
+router.get('/', fetchAllProducts)
+router.get('/:id', fetchProduct)
+router.post('/', createProduct)
+router.patch('/:id', updateProduct)
+router.delete('/:id', deleteProduct)
+router.post('/productToCat/:id', addProductToCategory)
 
 export default router;

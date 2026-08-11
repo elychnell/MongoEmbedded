@@ -23,23 +23,25 @@ export const fetchCat = async (req: Request, res: Response) => {
     const [rows] = await db.query<ICatDBResponse[]>(`
         SELECT 
           categories.id AS category_id, 
-          categories.content AS category_content,
-          categories.created_at AS category_created_at,
+          categories.name AS category_name,
           products.id AS product_id, 
-          products.category_id AS product_category_id,
-          products.content AS product_content,
+          products.title AS product_title,
+          products.description AS product_description,
+          products.stock AS product_stock,
+          products.price AS product_price,
+          products.image AS product_image,
           products.created_at AS product_created_at
-        from categories
-        LEFT JOIN products ON categories.id = products.category_id
-        LEFT JOIN categories AS categories ON categories.id = categories.id
+        from product_category
+        LEFT JOIN products ON product_category.prodID = products.id
+        LEFT JOIN categories ON product_category.catID = categories.id
         WHERE categories.id = ?
       `,
       [id]
     );
 
     console.log(rows)
-    const todo = rows[0]
-    if (!todo) {
+    const result = rows[0]
+    if (!result) {
       res.status(404).json({message: "Category not found"})
     }
   
@@ -54,13 +56,14 @@ const formatedCategory = (rows: ICatDBResponse[]) => {
   if (rows.length !== 0 && rows[0]) { 
   return {
       id:         rows[0].category_id,
-      content:    rows[0].category_content,
-      done:       rows[0].category_done,
-      created_at: rows[0].category_created_at,
+      name:    rows[0].category_name,
       products:   rows.map((row) => ({
           id:row.product_id,
-          category_id:row.product_category_id,
-          content:row.product_content,
+          title:row.product_title,
+          description:row.product_description,
+          stock:row.product_stock,
+          price:row.product_price,
+          image:row.product_image,
           created_at:row.product_created_at
       }))
     }
@@ -135,6 +138,27 @@ export const deleteCat = async (req: Request, res: Response) => {
       return
     }
     res.json({message: `Category ${id} deleted`})
+  } catch(error: unknown) {
+    const message = error  instanceof Error ? error.message : 'Unknown error'
+    res.status(500).json({error: message})
+  }
+}
+
+export const addCategoryToProduct = async (req: Request, res: Response) => {
+  const {id} = req.params
+  const {productId} = req.body
+  
+  try {
+    const [result] = await db.query<ResultSetHeader>(`
+      INSERT INTO  product_category (catID, prodID)
+      VALUES (?, ?)
+    `, [id, productId]);
+
+if (!productId) {
+    res.status(400).json({ error: 'Product ID is required' });
+    return;
+  }
+    res.json({message: `Category ${id} added to product ${productId}`})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})

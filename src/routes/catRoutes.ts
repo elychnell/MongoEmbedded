@@ -1,5 +1,6 @@
 import express from 'express';
 import { 
+  addCategoryToProduct,
   createCat,
   deleteCat,
   fetchAllCats,
@@ -7,10 +8,11 @@ import {
   updateCat } from '../controller/catController';
 const router = express.Router()
 
-router.get('/categories', fetchAllCats)
-router.post('/categories', createCat)
-router.patch('/categories/:id', updateCat)
-router.delete('/categories/:id', deleteCat)
-router.get('/categories/:id/products', fetchCat)
+router.get('/', fetchAllCats);
+router.post('/', createCat);
+router.patch('/:id', updateCat);
+router.delete('/:id', deleteCat);
+router.get('/:id/products', fetchCat);
+router.post('/catToProduct/:id', addCategoryToProduct);
 
 export default router;

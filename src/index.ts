@@ -3,12 +3,14 @@ import cors from 'cors';
 import catRoutes from './routes/catRoutes.js';
 import prodRoutes from './routes/prodRoutes.js';
 
+
+
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 app.use(cors());
-app.use('/', catRoutes);
+app.use('/categories', catRoutes);
 app.use('/products', prodRoutes);
 
 app.get('/', (_: Request, res: Response) => {

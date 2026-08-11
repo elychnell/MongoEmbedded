@@ -36,18 +36,18 @@ export const fetchProduct = async (req: Request, res: Response) => {
 
   try {
     const [results] = await db.query<RowDataPacket[]>(
-      `SELECT * FROM products WHERE id = ?`,
-      [id]
+      `SELECT * FROM products WHERE id = ?`, [id]
     );
     console.log(results, results[0])
 
-    const todo = results[0]
-    if (!todo) {
+    const product = results[0]
+    if (!product) {
       res.status(404).json({message: "Product not found"})
+      return  
     }
-    res.json(todo)
+    res.json(product)
   } catch(error: unknown) {
-    const message = error  instanceof Error ? error.message : 'Unknown error'
+    const message = error instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
   }
 }
@@ -84,8 +84,9 @@ export const createProduct = async (req: Request, res: Response) => {
     const [result] = await db.query<ResultSetHeader>(
         sql,[title, description, stock, price] );
     res.status(201).json({message: 'Product created', newProduct: {id: result.insertId, title: title, description: description, stock: stock, price: price}})
-  } catch(error: unknown) {
-    const message = error  instanceof Error ? error.message : 'Unknown error'
+  } catch (error: unknown) {
+    console.error('SERVER ERROR IN CREATEPRODUCT:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
   }
 }
@@ -157,5 +158,24 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 }
 
+export const addProductToCategory = async (req: Request, res: Response) => {
 
+  const {id} = req.params
+  const {categoryId} = req.body
 
+  try {
+    const [result] = await db.query<ResultSetHeader>(`
+      INSERT INTO  product_category (prodID, catID)
+      VALUES (?, ?)
+    `, [id, categoryId]);
+
+if (!categoryId) {
+    res.status(400).json({ error: 'Category ID is required' });
+    return;
+  }
+    res.json({message: `Product ${id} added to category ${categoryId}`})
+  } catch(error: unknown) {
+    const message = error  instanceof Error ? error.message : 'Unknown error'
+    res.status(500).json({error: message})
+  }
+}
