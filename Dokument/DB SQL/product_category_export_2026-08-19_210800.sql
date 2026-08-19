@@ -1,0 +1,12 @@
+insert into `product_category` (`catID`, `id`, `prodID`) values (1, 2, 2);
+insert into `product_category` (`catID`, `id`, `prodID`) values (3, 6, 2);
+insert into `product_category` (`catID`, `id`, `prodID`) values (5, 7, 2);
+insert into `product_category` (`catID`, `id`, `prodID`) values (9, 8, 3);
+insert into `product_category` (`catID`, `id`, `prodID`) values (14, 9, 3);
+insert into `product_category` (`catID`, `id`, `prodID`) values (5, 10, 7);
+insert into `product_category` (`catID`, `id`, `prodID`) values (6, 11, 7);
+insert into `product_category` (`catID`, `id`, `prodID`) values (7, 12, 7);
+insert into `product_category` (`catID`, `id`, `prodID`) values (14, 13, 2);
+insert into `product_category` (`catID`, `id`, `prodID`) values (6, 14, 2);
+insert into `product_category` (`catID`, `id`, `prodID`) values (7, 15, 2);
+insert into `product_category` (`catID`, `id`, `prodID`) values (5, 16, 2);

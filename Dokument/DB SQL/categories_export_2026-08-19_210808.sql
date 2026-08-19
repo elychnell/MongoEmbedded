@@ -1,0 +1,12 @@
+insert into `categories` (`id`, `name`) values (1, 'Audio & Headphones');
+insert into `categories` (`id`, `name`) values (3, 'Computers & Accessories');
+insert into `categories` (`id`, `name`) values (4, 'Smart Home & Wearables');
+insert into `categories` (`id`, `name`) values (5, 'Men\'s Clothing');
+insert into `categories` (`id`, `name`) values (6, 'Women\'s Clothing');
+insert into `categories` (`id`, `name`) values (7, 'Accessories');
+insert into `categories` (`id`, `name`) values (8, 'Kitchen & Dining');
+insert into `categories` (`id`, `name`) values (9, 'Decor & Lighting');
+insert into `categories` (`id`, `name`) values (10, 'Workspace');
+insert into `categories` (`id`, `name`) values (11, 'Skincare');
+insert into `categories` (`id`, `name`) values (12, 'Bath & Body');
+insert into `categories` (`id`, `name`) values (14, 'Skibidi brap');
