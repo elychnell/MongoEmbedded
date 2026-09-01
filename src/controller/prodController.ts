@@ -1,29 +1,28 @@
 import { Request, Response } from "express";
-import { db } from "../config/db";
-import { ResultSetHeader, RowDataPacket } from "mysql2";
+import  product from "../models/product";
 
 export const fetchAllProducts = async (req: Request, res: Response) => {
-  const search = req.query.search
-  const sort = req.query.sort
+  const search = req.query.search as string;
+  const sort = req.query.sort as string;
 
   try {
-    let sql = 'SELECT * FROM products'
-    let params: string[] = [];
+  const filter: any = {};
 
-    if(search) {
-      sql += ` WHERE title LIKE ?`
-      params = [`%${search}%`]
-    }
+  if (search) {
+  filter.title = { $regex: search, $options: 'i' };
+  }
 
-    // Solution 1
-    if(sort && sort === 'asc') {
-      sql += ` ORDER BY price ASC`
-    } else if (sort && sort === 'desc') {
-      sql += ` ORDER BY price DESC`
-    }
+let query = product.find(filter);
 
-    const [results] = await db.query<RowDataPacket[]>(sql,params);
-    res.json(results)
+  if(sort && sort === 'asc') {
+      query = query.sort({price: 1})
+  } else if (sort && sort === 'desc') {
+      query = query.sort({price: -1})
+  }
+
+ const result = await query;
+
+    res.json(result)
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -35,17 +34,13 @@ export const fetchProduct = async (req: Request, res: Response) => {
   const id = req.params.id
 
   try {
-    const [results] = await db.query<RowDataPacket[]>(
-      `SELECT * FROM products WHERE id = ?`, [id]
-    );
-    console.log(results, results[0])
+    const result = await product.findById(id);
 
-    const product = results[0]
-    if (!product) {
+    if (!result) {
       res.status(404).json({message: "Product not found"})
       return  
     }
-    res.json(product)
+    res.json(result)
   } catch(error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})
@@ -76,14 +71,9 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    const sql = `
-      INSERT INTO products (title, description, stock, price)
-      VALUES (?, ?, ?, ?)
-    `;
+    const result = await product.create({title, description, stock, price});
+    res.status(201).json({message: 'Product created', newProduct: {id: result._id, title: title, description: description, stock: stock, price: price}})
 
-    const [result] = await db.query<ResultSetHeader>(
-        sql,[title, description, stock, price] );
-    res.status(201).json({message: 'Product created', newProduct: {id: result.insertId, title: title, description: description, stock: stock, price: price}})
   } catch (error: unknown) {
     console.error('SERVER ERROR IN CREATEPRODUCT:', error);
     const message = error instanceof Error ? error.message : 'Unknown error'
@@ -94,39 +84,34 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
  
   const {title, description, stock, price} = req.body
+const updateData: any = {};
 
- if (title === undefined) {
-    res.status(400).json({error: 'Title is required'}) 
-    return; 
+  if (title !== undefined) {
+    updateData.title = title;
+  }
+  if (description !== undefined) {
+    updateData.description = description;
+  }
+  if (stock !== undefined) {
+    updateData.stock = stock;
+  }
+  if (price !== undefined) {
+    updateData.price = price;
   }
 
-  if (description === undefined) {
-    res.status(400).json({error: 'Description is required'}) 
-    return; 
-  }
 
-  if (stock === undefined) {
-    res.status(400).json({error: 'Stock is required'}) 
-    return; 
-  }
-
-  if (price === undefined) {
-    res.status(400).json({error: 'Price is required'}) 
+ if (title === undefined && description === undefined && stock === undefined && price === undefined) {
+    res.status(400).json({error: 'At least one field is required'}) 
     return; 
   }
 
   try {
     const id = req.params.id
-    const [result] = await db.query<ResultSetHeader>(`
-        UPDATE products 
-        SET title = ?, description = ?, stock = ?, price = ?
-        WHERE id = ?
-      `, [title, description, stock, price, id]
-    );
+    const result = await product.findByIdAndUpdate(id, updateData, {returnDocument: 'after'});
     
-    if (result.affectedRows === 0) {
+    if (!result) {
       res.status(404).json({message: `Product ${id} not found`})
-      return
+      return;
     }
   
     res.json({message: `Product ${id} updated`})
@@ -141,13 +126,8 @@ export const deleteProduct = async (req: Request, res: Response) => {
   const id = req.params.id
 
   try {
-    const sql = `
-      DELETE FROM products 
-      WHERE id = ?
-    `;
-
-    const [result] = await db.query<ResultSetHeader>(sql,[id]);
-    if (result.affectedRows === 0) {
+    const result = await product.findByIdAndDelete(id);
+    if (!result) {
       res.status(404).json({message: `Product ${id} not found`})
       return
     }
@@ -158,22 +138,61 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 }
 
-export const addProductToCategory = async (req: Request, res: Response) => {
+//EXPANDED CAT
 
-  const {id} = req.params
-  const {categoryId} = req.body
+export const createCat = async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const name = req.body.name;
+  if (!name) {
+    res.status(400).json({error: 'Name is required'}) 
+    return; 
+  }
 
   try {
-    const [result] = await db.query<ResultSetHeader>(`
-      INSERT INTO  product_category (prodID, catID)
-      VALUES (?, ?)
-    `, [id, categoryId]);
-
-if (!categoryId) {
-    res.status(400).json({ error: 'Category ID is required' });
-    return;
+    const result = await product.findById({_id: id}).updateOne({$push: {categories: {name: name}}}, {returnDocument: 'after'});
+    res.status(201).json({message: 'category created', newCategory: {ProductId: id, name: name}})
+  } catch(error: unknown) {
+    const message = error  instanceof Error ? error.message : 'Unknown error'
+    res.status(500).json({error: message})
   }
-    res.json({message: `Product ${id} added to category ${categoryId}`})
+}
+
+
+export const updateCat = async (req: Request, res: Response) => {
+  const name = req.body as string;
+  const id = req.params.id as string;
+
+  if (!name) {
+    res.status(400).json({error: 'Name is required'})
+    return
+  }
+
+  try {
+    
+    const result = await category.findByIdAndUpdate(id, {name: name}, {returnDocument: 'after'});
+  
+    if (!result) {
+      res.status(404).json({message: "Category not found"})
+      return
+    }
+    res.json({message: `Category ${id} updated`})
+  } catch(error: unknown) {
+    const message = error  instanceof Error ? error.message : 'Unknown error'
+    res.status(500).json({error: message})
+  }
+}
+
+export const deleteCat = async (req: Request, res: Response) => {
+  const id = req.params.id
+
+  try {
+    const result = await category.findByIdAndDelete(id);
+
+    if (!result) {
+      res.status(404).json({message: `Category ${id} not found`})
+      return
+    }
+    res.json({message: `Category ${id} deleted`})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({error: message})

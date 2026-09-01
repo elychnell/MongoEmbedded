@@ -1,20 +1,20 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import catRoutes from './routes/catRoutes.js';
 import prodRoutes from './routes/prodRoutes.js';
+import dotenv from 'dotenv';
 
-
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 app.use(cors());
-app.use('/categories', catRoutes);
-app.use('/products', prodRoutes);
+app.use('/', prodRoutes);
 
 app.get('/', (_: Request, res: Response) => {
 	try {
+		/*
 		res.send(`<style>pre { display: inline;position: relative; right: 50px; } </style>
 		<h2>API Routes</h2>
 		<h4>Categories:</h4>
@@ -35,6 +35,7 @@ app.get('/', (_: Request, res: Response) => {
 		• Uppdatera befintlig produkt med PATCH: <a href="http://localhost:3000/products/:id">http://localhost:3000/products/:id</a>
 		• Radera befintlig produkt med DELETE: <a href="http://localhost:3000/products/:id">http://localhost:3000/products/:id</a>
 		</pre>`);
+		*/
 	} catch (error) {
 		console.error('Error:', error);
 		res.json({ error: error });
@@ -42,6 +43,11 @@ app.get('/', (_: Request, res: Response) => {
 		console.log('Root endpoint request processed');
 	}
 });
+
+// Test DB connection
+import mongoose from "mongoose"
+mongoose.connect(process.env.MONGODB_URL || "");
+
 
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
