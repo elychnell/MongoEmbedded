@@ -30,8 +30,7 @@ let query = product.find(filter);
 }
 
 export const fetchProduct = async (req: Request, res: Response) => {
-  console.log(req.params)
-  const id = req.params.id
+  const id = req.params.id as string;
 
   try {
     const result = await product.findById(id);
@@ -48,7 +47,7 @@ export const fetchProduct = async (req: Request, res: Response) => {
 }
 
 export const createProduct = async (req: Request, res: Response) => {
-  const {title, description, stock, price} = req.body
+  const {title, description, stock, price} = req.body as {title: string, description: string, stock: number, price: number};
 
   if (title === undefined) {
     res.status(400).json({error: 'Title is required'}) 
@@ -82,8 +81,8 @@ export const createProduct = async (req: Request, res: Response) => {
 }
 
 export const updateProduct = async (req: Request, res: Response) => {
- 
-  const {title, description, stock, price} = req.body
+const id = req.params.id as string;
+const {title, description, stock, price} = req.body as {title: string, description: string, stock: number, price: number};
 const updateData: any = {};
 
   if (title !== undefined) {
@@ -106,7 +105,7 @@ const updateData: any = {};
   }
 
   try {
-    const id = req.params.id
+    
     const result = await product.findByIdAndUpdate(id, updateData, {returnDocument: 'after'});
     
     if (!result) {
@@ -123,7 +122,7 @@ const updateData: any = {};
 
 
 export const deleteProduct = async (req: Request, res: Response) => {
-  const id = req.params.id
+  const id = req.params.id as string;
 
   try {
     const result = await product.findByIdAndDelete(id);
@@ -141,15 +140,31 @@ export const deleteProduct = async (req: Request, res: Response) => {
 //EXPANDED CAT
 
 export const createCat = async (req: Request, res: Response) => {
-  const id = req.params.id;
-  const name = req.body.name;
+  const id = req.params.id as string;
+  const name = req.body.name as string;
+
   if (!name) {
     res.status(400).json({error: 'Name is required'}) 
     return; 
   }
 
   try {
-    const result = await product.findById({_id: id}).updateOne({$push: {categories: {name: name}}}, {returnDocument: 'after'});
+    const result = await product.findByIdAndUpdate(id,
+      {
+        $push: {
+          categories: {
+            name: name
+          }
+        }
+      },
+      { new: true }
+    );
+
+     if (!result) {
+      res.status(404).json({message: `Product ${id} not found`});
+      return;
+    }
+
     res.status(201).json({message: 'category created', newCategory: {ProductId: id, name: name}})
   } catch(error: unknown) {
     const message = error  instanceof Error ? error.message : 'Unknown error'
@@ -159,8 +174,9 @@ export const createCat = async (req: Request, res: Response) => {
 
 
 export const updateCat = async (req: Request, res: Response) => {
-  const name = req.body as string;
+  const name = req.body.name as string;
   const id = req.params.id as string;
+  const catId = req.params.catId as string;
 
   if (!name) {
     res.status(400).json({error: 'Name is required'})
@@ -169,7 +185,17 @@ export const updateCat = async (req: Request, res: Response) => {
 
   try {
     
-    const result = await category.findByIdAndUpdate(id, {name: name}, {returnDocument: 'after'});
+    const result = await product.findByIdAndUpdate(id,
+  {
+    $set: {
+      categories: {
+        _id: catId,
+        name: name
+      }
+    }
+  },
+  { new: true }
+);
   
     if (!result) {
       res.status(404).json({message: "Category not found"})
@@ -183,10 +209,20 @@ export const updateCat = async (req: Request, res: Response) => {
 }
 
 export const deleteCat = async (req: Request, res: Response) => {
-  const id = req.params.id
+  const id = req.params.id as string;
+  const catId = req.params.catId as string;
 
   try {
-    const result = await category.findByIdAndDelete(id);
+    const result = await product.findByIdAndUpdate(id,
+  {
+    $pull: {
+      categories: {
+        _id: catId
+      }
+    }
+  },
+  { new: true }
+);
 
     if (!result) {
       res.status(404).json({message: `Category ${id} not found`})
