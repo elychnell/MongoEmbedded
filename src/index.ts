@@ -10,18 +10,9 @@ const PORT = 3000;
 
 app.use(express.json());
 app.use(cors());
-app.use('/', prodRoutes);
 
-app.get('/', (_: Request, res: Response) => {
-	try {
-		res.json({ message: 'Welcome to the Product API' });
-	} catch (error) {
-		console.error('Error:', error);
-		res.json({ error: error });
-	} finally {
-		console.log('Root endpoint request processed');
-	}
-});
+app.use(express.static('src'));
+app.use('/api/products', prodRoutes);
 
 // Test DB connection
 import mongoose from "mongoose"
